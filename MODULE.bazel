@@ -1,0 +1,43 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+
+# module(
+#     name = "example_bzlmod",
+#     version = "0.0.0",
+#     compatibility_level = 1,
+# )
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_python", version = "1.0.0")
+
+
+# We next initialize the python toolchain using the extension.
+# You can set different Python versions in this block.
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    python_version = "3.13.0",
+)
+
+# You can use this repo mapping to ensure that your BUILD.bazel files don't need
+# to be updated when the python version changes to a different `3.9` version.
+use_repo(
+    python,
+    python_3_13_0 = "python_3_13_0",
+)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    download_only = True,
+    hub_name = "pypi",
+    # We need to use the same version here as in the `python.toolchain` call.
+    python_version = "3.13.0",
+    requirements_lock = "//:requirements_lock.txt",
+    requirements_windows = "//:requirements_windows.txt",
+)
+use_repo(pip, "pypi")
+
+
